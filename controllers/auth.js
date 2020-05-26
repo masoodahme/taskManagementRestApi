@@ -4,7 +4,7 @@ const router=express.Router();
 const User=require("../models/users");
 const { check, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-
+const expressJwt=require("express-jwt");
 exports.signup=(req,res)=>{
   const errors=validationResult(req);
   if(!errors.isEmpty()){
@@ -78,7 +78,38 @@ exports.signin=(req,res)=>{
     
  })
 };
+exports.isSignedIn=expressJwt({
+    secret:process.env.SECRET,
+    requestProperty:"auth" //it holds the user _id which is generated when the user is signed in
+});
+// exports.checkToken=(req,res,next)=>{
+//     const header = req.headers['authorization'];
 
+//     if(header!=='undefined'){
+//             const bearer=header.split(" ");
+//             const token=bearer[1];
+//             req.token=token;
+//             next();
+//     }
+//     else{
+//         return res.json({
+//             "error":"No Token found Access Denied"
+//         })
+//     }
+// }
+exports.isAuthorized=(req,res,next)=>{
+    //req.user is set when user is singed in and req.auth is present in isSignedIn
+    console.log(req.profile);
+    let checker=req.profile && req.auth && req.profile._id==req.auth._id;
+    if(!checker)
+    {   
+        return res.status(403).json({
+            "message":"Access Denied"
+        })
+
+    }
+    next();
+};
 exports.signout=(req,res)=>{
     res.clearCookie("token");
     res.json({
