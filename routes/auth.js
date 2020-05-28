@@ -19,7 +19,7 @@ router.post("/signin",[
     check("password","password is required").isLength({min:1})
 ],signin);
 
-router.get("/protected/:id",isSignedIn,isAuthorized,(req,res)=>{
+router.get("/protected",isSignedIn,(req,res)=>{
          res.json({
             "message":"can access the route"
         });

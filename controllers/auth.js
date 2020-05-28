@@ -80,23 +80,8 @@ exports.signin=(req,res)=>{
 };
 exports.isSignedIn=expressJwt({
     secret:process.env.SECRET,
-    requestProperty:"auth" //it holds the user _id which is generated when the user is signed in
+    userProperty:"auth" //it holds the user _id which is generated when the user is signed in
 });
-// exports.checkToken=(req,res,next)=>{
-//     const header = req.headers['authorization'];
-
-//     if(header!=='undefined'){
-//             const bearer=header.split(" ");
-//             const token=bearer[1];
-//             req.token=token;
-//             next();
-//     }
-//     else{
-//         return res.json({
-//             "error":"No Token found Access Denied"
-//         })
-//     }
-// }
 exports.isAuthorized=(req,res,next)=>{
     //req.user is set when user is singed in and req.auth is present in isSignedIn
     console.log(req.profile);
