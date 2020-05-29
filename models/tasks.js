@@ -11,7 +11,11 @@ const TaskSchema=new Schema({
           type:String,
           required:true
       },
-      tags:{
+      labels:{
+          type:String,
+          required:true
+      },
+      status:{
           type:String,
           required:true
       },
