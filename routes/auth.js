@@ -23,7 +23,6 @@ router.get("/protected",isSignedIn,(req,res)=>{
          res.json({
             "message":"can access the route"
         });
-        
     });
 
 router.get("/signout",signout);

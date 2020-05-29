@@ -27,15 +27,15 @@ exports.addTask=(req,res)=>{
 };
 //get all the task from database
 exports.getTask=(req,res)=>{ 
-    Task.find({},(err,tasks)=>{
-        if(err || !tasks)
-        {
-            return res.status(403).json({
-                message:"No Task Founds"
-            });
-        }
+    Task.find({ name: { $exists: true} },(err,tasks)=>{
+        if(err) return res.status(403).json({message:"No Task Found"});
+        if(!tasks) return res.status(403).json({
+            message:"No Task Found"
+        })
    res.json(tasks);
     });
+
+
 };
 
 exports.getTagName=(req,res,next)=>{
