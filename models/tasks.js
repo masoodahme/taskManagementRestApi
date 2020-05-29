@@ -14,6 +14,10 @@ const TaskSchema=new Schema({
       tags:{
           type:String,
           required:true
+      },
+      dueDate:{
+          type:String,
+          required:true
       }
 },{timestamps:true});
 

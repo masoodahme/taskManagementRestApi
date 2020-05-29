@@ -12,7 +12,7 @@ exports.addTask=(req,res)=>{
     console.log(id);
      const {name,tags}=req.body;
      console.log(name,tags);
-     const tasks=new Task({id:id,name:name,tags:tags});
+     const tasks=new Task({id:id,name:req.query.name,tags:req.query.tags,dueDate:req.query.date});
      tasks.save((err,added)=>{
          if(err||!added){
              console.log(err);
@@ -88,7 +88,7 @@ exports.update=(req,res)=>{
 
     //new approach -->using promises
     Task.findOne({name:req.tagname})
-    .then(doc=> Task.updateOne({_id:doc._id},{name:req.body.name,tags:req.body.tags}))
+    .then(doc=> Task.updateOne({_id:doc._id},{name:req.query.name,tags:req.query.tags,dueDate:req.query.date}))
     .then(doc=> res.json({
         message:"Updated Successfully"
     }));
