@@ -12,6 +12,7 @@ exports.signup=(req,res)=>{
           errors:errors.array()[0].msg
       })
 }
+
 const user=new User(req.body);
  user.save((err,users)=>{
      if(err)
@@ -30,7 +31,8 @@ const user=new User(req.body);
  })
 
 };
-
+let refreshtoken="";
+let refreshTokens=[];
 exports.signin=(req,res)=>{
     const {email,password}=req.body;
  const errors=validationResult(req);
@@ -41,6 +43,7 @@ exports.signin=(req,res)=>{
      })
  }
  User.findOne({email:email},(err,user)=>{
+    
      if(err)
      {
         console.log(err);
@@ -63,16 +66,24 @@ exports.signin=(req,res)=>{
             err:"Email and password does not exists"
         });
     }
-     //token created
-    const token=jwt.sign({_id:user.id},process.env.SECRET);
-    //put token in cookie
-    res.cookie("token",token,{expire:new Date()+9999});
+
+     //Access token created
+    const accesstoken=jwt.sign({_id:user.id},process.env.SECRET);
+ 
+    //refresh token
+     refreshtoken=jwt.sign({_id:user.id},process.env.REFRESHTOKENSECRET,{expiresIn:86400});
+    refreshTokens.push(refreshtoken);
+   
+    // //put token in cookie
+    // res.cookie("token",token,{expire:new Date()+9999});
      //destructuring
     const {_id,email,name}=user;
-    res.json({token,user:{
+    res.json({user:{
         name:name,
         email:email,
-        id:_id
+        id:_id,
+        token:accesstoken,
+        refreshtoken:refreshtoken
     } 
     });
     
@@ -84,8 +95,12 @@ exports.isSignedIn=expressJwt({
 });
 exports.isAuthorized=(req,res,next)=>{
     //req.user is set when user is singed in and req.auth is present in isSignedIn
+    console.log("2");
     console.log(req.profile);
-    let checker=req.profile && req.auth && req.profile._id==req.auth._id;
+    console.log(req.profile._id);
+     console.log(req.auth._id);
+    let checker=req.profile && req.auth && req.profile==req.auth._id;
+    console.log(checker);
     if(!checker)
     {   
         return res.status(403).json({
@@ -95,9 +110,42 @@ exports.isAuthorized=(req,res,next)=>{
     }
     next();
 };
+exports.generateToken=(req,res)=>{
+    console.log("d");
+        const { refreshtoken } = req.body;
+
+        if (!refreshtoken) {
+            return res.sendStatus(401);
+        }
+    
+        if (!refreshTokens.includes(refreshtoken)) {
+            return res.sendStatus(403);
+        }
+    
+        jwt.verify(refreshtoken, process.env.REFRESHTOKENSECRET, (err, user) => {
+            if (err) {
+                return res.sendStatus(403);
+            }
+            const accessToken = jwt.sign({_id:user.id}, process.env.SECRET, { expiresIn: '20m' });
+    
+            res.json({
+                accessToken
+            });
+        });
+
+}
 exports.signout=(req,res)=>{
-    res.clearCookie("token");
+    // res.clearCookie("token");
+    const { refreshtoken } = req.body;
+    console.log(refreshtoken);
+    
+    
+        refreshTokens = refreshTokens.filter(t => t !== refreshtoken);
+   
+    console.log(refreshTokens);
+
     res.json({
         message:"user has signed out"
     })
 }
+

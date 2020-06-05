@@ -6,28 +6,33 @@ const Task=require("../models/tasks");
 //middlewares
  app.use(bodyParser.urlencoded({extended:true}));
  app.use(bodyParser.json());
+ 
 //add task
 exports.addTask=(req,res)=>{
-    const id=req.profile._id;
+    const id=req.profile;
     console.log(id);
-     const {name,labels,dueDate,status}=req.body;
+     const {description,dueDate,priority,status,list}=req.body;
      //console.log(name,labels);
-     const tasks=new Task({id:id,name:name,labels:labels,status:status,dueDate:dueDate});
-     tasks.save((err,added)=>{
-         if(err||!added){
+     const tasks=new Task({UserId:id,description:description,dueDate:dueDate,priority:priority,status:status,list:list});
+     tasks.save((err,task)=>{
+         if(err||!task){
              console.log(err);
              return res.status(403).json({
                  message:"No Task Have Been Added"
              });
          }
          res.json({
-            message:"Task Have Been Added Successfully"
+            message:"Task Have Been Added Successfully",
+            tasks:task
         });
      })
 };
 //get all the task from database
 exports.getTask=(req,res)=>{ 
-    Task.find({ name: { $exists: true} },(err,tasks)=>{
+    Task.find({ list:req.query.list})
+    .sort({priority:-1,createdAt:-1})
+    .exec(
+    (err,tasks)=>{
         if(err) return res.status(403).json({message:"No Task Found"});
         if(!tasks) return res.status(403).json({
             message:"No Task Found"
@@ -58,7 +63,9 @@ exports.getTaskByLabel=(req,res)=>{
 };
 //get the task based on status from the database
 exports.getTaskByStatus=(req,res)=>{
-        Task.find({status:req.query.status})
+    console.log(req.query.list,req.query.status);
+        Task.find({list:req.query.list,status:req.query.status})
+        .sort({priority:-1,createdAt:-1})
         .then(tasks=>res.status(200).json(tasks))
         .catch(()=>res.status(403).json({
         message:`No Task Found at ${req.query.status}`
@@ -66,10 +73,19 @@ exports.getTaskByStatus=(req,res)=>{
 };
 //update the task
 exports.update=(req,res)=>{
-    Task.findOne({name:req.tagname})
-    .then(doc=> Task.updateOne({_id:doc._id},{name:req.body.name,labels:req.body.labels,status:req.body.status,dueDate:req.body.date}))
+    // Task.findOne({_id:req.query.taskid})
+    // .then(doc=> Task.updateOne({_id:doc._id},{name:req.body.name,labels:req.body.labels,status:req.body.status,dueDate:req.body.date}))
+    // .then(doc=> res.json({
+    //     message:"Updated Successfully"
+    // }))
+    // .catch(()=> res.status(403).json({
+    //     message:"Updation Failed"
+    // }));
+    Task.findByIdAndUpdate({_id:req.query.taskid},{$set:{description:req.body.description,dueDate:req.body.dueDate,
+        priority:req.body.priority,status:req.body.status,list:req.body.list}},{new:true})
     .then(doc=> res.json({
-        message:"Updated Successfully"
+        message:"updated Successfully",
+        task:doc
     }))
     .catch(()=> res.status(403).json({
         message:"Updation Failed"
@@ -77,13 +93,19 @@ exports.update=(req,res)=>{
 };
 //delete the task
 exports.deleteTask=(req,res)=>{
-    Task.findOne({name:req.tagname})
-    .then(doc=>Task.deleteOne({_id:doc._id}))
-    .then(()=> res.json({
+    // Task.findOne({name:req.tagname})
+    // .then(doc=>Task.deleteOne({_id:doc._id}))
+    // .then(()=> res.json({
+    //     message:"Deleted Successfully"
+    // }))
+    // .catch(()=> res.status(403).json({
+    //     message:"Deletion Failed"
+    // }));
+    Task.findOneAndDelete({_id:req.query.taskid})
+    .then(doc=>res.status(200).json({
         message:"Deleted Successfully"
     }))
-    .catch(()=> res.status(403).json({
+    .catch(()=>res.status(403).json({
         message:"Deletion Failed"
     }));
-  
 };
