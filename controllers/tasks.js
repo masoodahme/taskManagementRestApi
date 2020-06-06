@@ -29,8 +29,11 @@ exports.addTask=(req,res)=>{
 };
 //get all the task from database
 exports.getTask=(req,res)=>{ 
+    let pageNumber=req.query.pageno||0;
     Task.find({ list:req.query.list})
     .sort({priority:-1,createdAt:-1})
+    .skip(pageNumber*5)
+    .limit(5)
     .exec(
     (err,tasks)=>{
         if(err) return res.status(403).json({message:"No Task Found"});
@@ -63,9 +66,12 @@ exports.getTaskByLabel=(req,res)=>{
 };
 //get the task based on status from the database
 exports.getTaskByStatus=(req,res)=>{
+    let pageNumber=req.query.pageno||0;
     console.log(req.query.list,req.query.status);
         Task.find({list:req.query.list,status:req.query.status})
         .sort({priority:-1,createdAt:-1})
+        .skip(pageNumber*5)
+        .limit(5)
         .then(tasks=>res.status(200).json(tasks))
         .catch(()=>res.status(403).json({
         message:`No Task Found at ${req.query.status}`
