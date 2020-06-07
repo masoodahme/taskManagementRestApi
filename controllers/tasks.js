@@ -64,6 +64,23 @@ exports.getTaskByLabel=(req,res)=>{
     });
 
 };
+//get task by dueDate
+exports.getTaskByDate=(req,res)=>{
+    let pageNumber=req.query.pageno||0;
+    console.log(req.query.date);
+    Task.find({UserId:req.profile,list:req.query.list,dueDate:req.query.date})
+    .sort({priority:-1,createdAt:-1})
+    .skip(pageNumber*5)
+    .limit(5)
+    .exec(
+    (err,tasks)=>{
+        if(err) return res.status(403).json({message:"No Task Found"});
+        if(!tasks) return res.status(403).json({
+            message:"No Task Found"
+        })
+   res.json(tasks);
+    });
+}
 //get the task based on status from the database
 exports.getTaskByStatus=(req,res)=>{
     let pageNumber=req.query.pageno||0;

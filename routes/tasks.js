@@ -5,7 +5,7 @@ const router=express.Router();
 //controllers
 const {isSignedIn,isAuthorized,checkBlackListTokens}=require("../controllers/auth");
 const {getId}=require("../controllers/users");
-const {addTask,getTask,update,deleteTask,getTaskByStatus,searchTask}=require("../controllers/tasks");
+const {addTask,getTask,update,deleteTask,getTaskByStatus,searchTask,getTaskByDate}=require("../controllers/tasks");
 //live searh
 router.get("/search",getId,isSignedIn,checkBlackListTokens,isAuthorized,searchTask);
 //post task
@@ -14,6 +14,8 @@ router.post("/task/addTask/",getId,isSignedIn,checkBlackListTokens,isAuthorized,
 //get task
 // router.get("/task/getTask/",cors.corsWithOptions,getId,isSignedIn,checkTokens,isAuthorized,getTask);
 router.get("/task/getTask/",getId,isSignedIn,checkBlackListTokens,isAuthorized,getTask);
+//get task by dueDate
+router.get("/task/getTaskByDate",getId,isSignedIn,checkBlackListTokens,isAuthorized,getTaskByDate);
 //get task by status
 // router.get("/task/getTaskByStatus",cors.corsWithOptions,getId,isSignedIn,checkTokens,isAuthorized,getTaskByStatus);
 router.get("/task/getTaskByStatus",getId,isSignedIn,checkBlackListTokens,isAuthorized,getTaskByStatus);
