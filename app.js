@@ -12,7 +12,6 @@ useNewUrlParser:true,useCreateIndex:true,useUnifiedTopology:true})
     console.log("DB connected succesfully");
 })
 
-
 //middlewares
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
@@ -22,7 +21,7 @@ app.use(cors());
 const authRoutes=require("./routes/auth");
 const taskRoutes=require("./routes/tasks");
 const listRoutes=require("./routes/lists");
-//custom cors
+//custom cors 
 app.use((req,res,next)=>{
     res.header("Access-Control-Allow-Origin","*");
     res.header("Access-Control-Allow-Headers","Origin,X-Requested-With,Content-Type,Accept,Authorization");
@@ -33,7 +32,7 @@ app.use((req,res,next)=>{
     }
     next();
 });
-//custom middlewares 
+//custom middlewares for routes
 app.use("/api",authRoutes);
 app.use("/api",taskRoutes);
 app.use("/api",listRoutes);
@@ -48,7 +47,8 @@ app.use((err,req,res,next)=>{
     });
 });
 //server listening port
+//set the  port dynamically
 const port=process.env.PORT||4000;
 app.listen(port,()=>{
-    console.log("server started successfully");
+    console.log("server has started successfully");
 })

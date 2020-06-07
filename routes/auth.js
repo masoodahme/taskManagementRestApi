@@ -1,14 +1,15 @@
 const express=require("express");
+//create router for authentication
 const router=express.Router();
 const { check, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-//import cors file
-// const cors=require("./cors");
 const cors=require("cors");
+
 //controllers
 const {signup,signin,signout,isSignedIn,checkBlackListTokens,isAuthorized,changePassword}=require("../controllers/auth");
 const {getId}=require("../controllers/users");
-
+//authentication routes
+//signup router
 router.post("/signup",cors(),[
     check("email","email is required").isEmail(),
     check("password","password should be at least 8 char").isLength({min:8})
@@ -23,7 +24,8 @@ router.post("/signin",cors(),[
 
 //change password router
 router.post("/changePassword",cors(),getId,isSignedIn,checkBlackListTokens,isAuthorized,changePassword);
+
 //signout
 router.post("/signout",cors(),signout);
-
+//exports the router 
 module.exports=router;

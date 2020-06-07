@@ -1,7 +1,7 @@
 const mongoose=require("mongoose");
 
 const Schema=mongoose.Schema;
-
+//to store blacklisted tokens
 const BlackListSchema=new Schema({
       UserId:{
           type:String,

@@ -1,7 +1,6 @@
 const mongoose=require("mongoose");
-
 const Schema=mongoose.Schema;
-
+//to store tasks
 const TaskSchema=new Schema({
       UserId:{
           type:String,
@@ -28,5 +27,5 @@ const TaskSchema=new Schema({
           required:true
       }
 },{timestamps:true});
-
+//export the userschema module
 module.exports=mongoose.model("tasks",TaskSchema);

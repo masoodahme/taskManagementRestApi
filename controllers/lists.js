@@ -1,20 +1,19 @@
 const express=require("express");
 const app=express();
 const bodyParser=require("body-parser");
-//models
+//List model
 const List=require("../models/lists");
 //middlewares
  app.use(bodyParser.urlencoded({extended:true}));
  app.use(bodyParser.json());
 
-
+//add the list into the database
  exports.addList=(req,res)=>{
       const {list}=req.body;
       const id=req.profile;
       const lists=new List({UserId:id,lists:list});
       lists.save((err,list)=>{
         if(err||!list){
-            console.log(err);
             return res.status(403).json({
                 message:"No List Have Been Added"
             });
@@ -25,7 +24,7 @@ const List=require("../models/lists");
        });
       })
  };
-
+//get the list from the database
  exports.getList=(req,res)=>{
     List.find({UserId:req.profile})
     .exec(
@@ -34,11 +33,12 @@ const List=require("../models/lists");
         if(!lists) return res.status(403).json({
             message:"No List Found"
         });
-        console.log("dd");
    res.json(lists);
     });
 
  };
+
+ //delete the list from the database
  exports.deleteList=(req,res)=>{
     List.findOneAndDelete({_id:req.query.taskid})
     .then(doc=>res.status(200).json({

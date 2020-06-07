@@ -1,10 +1,10 @@
 const express=require("express");
 const router=express.Router();
-//models
+//User models
 const User=require("../models/users");
 const jwt = require('jsonwebtoken');
 const expressJwt=require("express-jwt");
-
+//get id of the user
 exports.getId=(req,res,next)=>{
     //get user id from jwt token payload
     var Bearer=req.headers.authorization.split(" ")[0];
@@ -26,6 +26,7 @@ exports.getId=(req,res,next)=>{
             message:"You are not authorized",
         })
     }
+    //set the user id to req.profile
     req.profile=decoded._id;
     next();
 };
