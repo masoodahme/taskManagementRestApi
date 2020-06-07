@@ -1,30 +1,31 @@
 const express=require("express");
+//create router for authentication
 const router=express.Router();
 const { check, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-//controllers
-const {signup,signin,signout,isSignedIn,checkToken,isAuthorized}=require("../controllers/auth");
-const {getId}=require("../controllers/users");
+const cors=require("cors");
 
-router.post("/signup",[
-    check("name","name should be atleast 3 charecters").isLength({min:3}),
+//controllers
+const {signup,signin,signout,isSignedIn,checkBlackListTokens,isAuthorized,changePassword}=require("../controllers/auth");
+const {getId}=require("../controllers/users");
+//authentication routes
+//signup router
+router.post("/signup",cors(),[
     check("email","email is required").isEmail(),
     check("password","password should be at least 8 char").isLength({min:8})
 ],signup
 );
-router.param("id",getId);
 
-router.post("/signin",[
+//sign in router
+router.post("/signin",cors(),[
     check("email","email is required").isEmail().isLength({min:1}),
     check("password","password is required").isLength({min:1})
 ],signin);
 
-router.get("/protected",isSignedIn,(req,res)=>{
-         res.json({
-            "message":"can access the route"
-        });
-    });
+//change password router
+router.post("/changePassword",cors(),getId,isSignedIn,checkBlackListTokens,isAuthorized,changePassword);
 
-router.get("/signout",signout);
-
+//signout
+router.post("/signout",cors(),signout);
+//exports the router 
 module.exports=router;

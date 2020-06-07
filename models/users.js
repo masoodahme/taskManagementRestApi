@@ -1,9 +1,8 @@
 const mongoose=require("mongoose");
 const crypto=require("crypto");
-// const uuidv1=require("uuid/v1");
 const { v1: uuidv1 } = require('uuid');
 const Schema=mongoose.Schema;
-
+//user schema
 var userSchema=new Schema({
     email:{
         type:String,
@@ -11,18 +10,13 @@ var userSchema=new Schema({
         trim:true,
         unique:true
     },
-    name:{
-        type:String,
-        required:true,
-        maxlength:32
-    },
     encrypt_password:{
         type:String,
         required:true
     },
     salt:String
 },{timestamps:true });
-
+//set the pasword
 userSchema.virtual("password")
   .set(function(password){
       //_password is private variable to store the password
@@ -35,9 +29,11 @@ userSchema.virtual("password")
   })
 
 userSchema.methods={
+    //compare the password
     authenticate:function(password){
         return this.securePassword(password)===this.encrypt_password;
     },
+    //encrypt the password
     securePassword:function(plainPassword){
         if(!plainPassword) return "";
         try{
@@ -51,5 +47,6 @@ userSchema.methods={
       
     }
 }
+//export the userschema module
 
 module.exports=mongoose.model("user",userSchema);
