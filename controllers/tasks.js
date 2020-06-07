@@ -30,7 +30,7 @@ exports.addTask=(req,res)=>{
 //get all the task from database
 exports.getTask=(req,res)=>{ 
     let pageNumber=req.query.pageno||0;
-    Task.find({ list:req.query.list})
+    Task.find({UserId:req.profile,list:req.query.list})
     .sort({priority:-1,createdAt:-1})
     .skip(pageNumber*5)
     .limit(5)
@@ -97,6 +97,24 @@ exports.update=(req,res)=>{
         message:"Updation Failed"
     }));
 };
+//Search Task
+exports.searchTask=(req,res)=>{
+    console.log(req.profile);
+    Task.find({UserId:req.profile})
+    .then((docs)=>Task.find({UserId:req.profile,list:req.query.list,description:{$regex:req.query.desc,$options:"i"}}))
+    .then((doc)=>{
+        doc.forEach((elem)=>console.log(elem));
+        res.status(200).json({
+            descriptions:doc
+        });
+    })
+    .catch((err)=>{
+        res.status(403).json({
+            message:"error in db",
+            error:err
+        })
+    });
+}
 //delete the task
 exports.deleteTask=(req,res)=>{
     // Task.findOne({name:req.tagname})

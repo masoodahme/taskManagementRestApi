@@ -11,11 +11,6 @@ var userSchema=new Schema({
         trim:true,
         unique:true
     },
-    name:{
-        type:String,
-        required:true,
-        maxlength:32
-    },
     encrypt_password:{
         type:String,
         required:true

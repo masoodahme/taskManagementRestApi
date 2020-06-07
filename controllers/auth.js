@@ -2,6 +2,8 @@ const express=require("express");
 const router=express.Router();
 //models
 const User=require("../models/users");
+const BlackList=require("../models/blacklists");
+//packages
 const { check, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const expressJwt=require("express-jwt");
@@ -23,16 +25,41 @@ const user=new User(req.body);
         });
      }
      res.json({
-         name:users.name,
+         
          email:users.email,
-         id:users._id,
-         password:users.encrypt_password
+         id:users._id
      });
  })
 
 };
-let refreshtoken="";
-let refreshTokens=[];
+ exports.checkBlackListTokens=(req,res,next)=>{
+    const token=req.headers.authorization.split(" ")[1];
+    BlackList.find({"tokens.token":token})
+    .exec((err,docs)=>{
+        if(err||!docs)
+        {
+            return res.status(403).json({
+                            message:"invalid token",
+                            error:err
+                        });
+        }
+        console.log(docs.length);
+        if(docs.length==0)
+        {
+     
+            next();
+           
+        }
+        else{
+            return res.status(403).json({
+                message:"invalid token",
+                error:err
+            });
+        }
+    
+        
+    })
+ };
 exports.signin=(req,res)=>{
     const {email,password}=req.body;
  const errors=validationResult(req);
@@ -68,37 +95,26 @@ exports.signin=(req,res)=>{
     }
 
      //Access token created
-    const accesstoken=jwt.sign({_id:user.id},process.env.SECRET);
+    const accesstoken=jwt.sign({_id:user.id},process.env.SECRET,{expiresIn:"7d"});
  
-    //refresh token
-     refreshtoken=jwt.sign({_id:user.id},process.env.REFRESHTOKENSECRET,{expiresIn:86400});
-    refreshTokens.push(refreshtoken);
-   
-    // //put token in cookie
-    // res.cookie("token",token,{expire:new Date()+9999});
+    
      //destructuring
-    const {_id,email,name}=user;
+    const {_id,email}=user;
     res.json({user:{
-        name:name,
         email:email,
         id:_id,
-        token:accesstoken,
-        refreshtoken:refreshtoken
+        token:accesstoken
     } 
-    });
-    
+    }); 
  })
 };
 exports.isSignedIn=expressJwt({
     secret:process.env.SECRET,
     userProperty:"auth" //it holds the user _id which is generated when the user is signed in
 });
+
 exports.isAuthorized=(req,res,next)=>{
     //req.user is set when user is singed in and req.auth is present in isSignedIn
-    console.log("2");
-    console.log(req.profile);
-    console.log(req.profile._id);
-     console.log(req.auth._id);
     let checker=req.profile && req.auth && req.profile==req.auth._id;
     console.log(checker);
     if(!checker)
@@ -110,42 +126,65 @@ exports.isAuthorized=(req,res,next)=>{
     }
     next();
 };
-exports.generateToken=(req,res)=>{
-    console.log("d");
-        const { refreshtoken } = req.body;
-
-        if (!refreshtoken) {
-            return res.sendStatus(401);
+exports.changePassword=(req,res)=>{
+    var encrypt;
+    const {password,changepassword,confirmpassword}=req.body;
+    User.findById({_id:req.profile})
+    .then((docs)=>{
+        if(docs.length==0)
+        {
+            return res.status(403).json({
+                message:"User is not found in database"
+            })
         }
-    
-        if (!refreshTokens.includes(refreshtoken)) {
-            return res.sendStatus(403);
-        }
-    
-        jwt.verify(refreshtoken, process.env.REFRESHTOKENSECRET, (err, user) => {
-            if (err) {
-                return res.sendStatus(403);
-            }
-            const accessToken = jwt.sign({_id:user.id}, process.env.SECRET, { expiresIn: '20m' });
-    
-            res.json({
-                accessToken
+        if(!docs.authenticate(password))
+        {
+            console.log(err);
+            return res.status(401).json({
+                err:"Email and password does not exists"
             });
+        }
+        encrypt=docs.securePassword(changepassword);
+    })
+    .then(()=> User.updateOne({_id:req.profile},{encrypt_password:encrypt}))
+  .then((doc)=>{
+    var  token=req.headers.authorization.split(" ")[1];
+    var decoded = jwt.verify(token, process.env.SECRET);
+    const blacklist=new BlackList({UserId:decoded._id,tokens:[{token:token}]});
+    blacklist.save().then(()=>console.log("success"));
+    return res.status(200).json({
+            message:"Password Updated Successfully!",
+            docs:doc
+        })
+    })
+    .catch((err)=>{
+        return res.status(403).json({
+            message:"Error",
+            error:err
         });
+    });
 
 }
 exports.signout=(req,res)=>{
-    // res.clearCookie("token");
-    const { refreshtoken } = req.body;
-    console.log(refreshtoken);
-    
-    
-        refreshTokens = refreshTokens.filter(t => t !== refreshtoken);
-   
-    console.log(refreshTokens);
-
-    res.json({
+    const Bearertoken=req.headers.authorization.split(" ")[0];
+    console.log(Bearertoken);
+    if(Bearertoken=='Bearer'||Bearertoken=='bearer')
+    {
+       
+        var  token=req.headers.authorization.split(" ")[1];
+        var decoded = jwt.verify(token, process.env.SECRET);
+    }
+    const blacklist=new BlackList({UserId:decoded._id,tokens:[{token:token}]});
+    blacklist.save().then(()=>{res.json({
         message:"user has signed out"
-    })
+    })})
+    .catch((e)=>{
+        return res.status(403).json({
+            message:"Error in Signing Out",
+            error:e
+        });
+    });
+    
 }
+
 
