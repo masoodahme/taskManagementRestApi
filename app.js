@@ -21,6 +21,7 @@ app.use(cors());
 //routes
 const authRoutes=require("./routes/auth");
 const taskRoutes=require("./routes/tasks");
+const listRoutes=require("./routes/lists");
 //custom cors
 app.use((req,res,next)=>{
     res.header("Access-Control-Allow-Origin","*");
@@ -35,6 +36,7 @@ app.use((req,res,next)=>{
 //custom middlewares 
 app.use("/api",authRoutes);
 app.use("/api",taskRoutes);
+app.use("/api",listRoutes);
 //error handler
 app.use((err,req,res,next)=>{
     err.statusCode = err.statusCode || 500;

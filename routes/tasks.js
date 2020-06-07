@@ -6,6 +6,7 @@ const router=express.Router();
 const {isSignedIn,isAuthorized,checkBlackListTokens}=require("../controllers/auth");
 const {getId}=require("../controllers/users");
 const {addTask,getTask,update,deleteTask,getTaskByStatus,searchTask,getTaskByDate}=require("../controllers/tasks");
+
 //live searh
 router.get("/search",getId,isSignedIn,checkBlackListTokens,isAuthorized,searchTask);
 //post task
